@@ -179,10 +179,6 @@ include 'includes/header.php';
     border: 1px solid rgba(255, 255, 255, 0.5);
 }
 </style>
-
-
-
-<!-- Stats Cards -->
 <!-- Stats Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <!-- Total Income Card -->
