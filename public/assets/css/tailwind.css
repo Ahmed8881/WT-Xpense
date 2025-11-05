@@ -1,0 +1,22 @@
+/* Tailwind CSS via CDN - This file is a placeholder */
+/* The actual Tailwind CSS will be loaded via CDN in the HTML files */
+
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+.btn {
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    opacity: 0.9;
+}

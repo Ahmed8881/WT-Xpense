@@ -1,0 +1,106 @@
+You are building a full-stack web application in PHP (no framework) with MySQL database and Tailwind CSS for UI.
+
+### Project Name:
+Smart Expense & Income Dashboard
+
+### Tech Requirements:
+- Backend: PHP (procedural or modular functions, no OOP required unless needed)
+- Frontend: Tailwind CSS (CDN version or CLI build)
+- Database: MySQL
+- Charts: Chart.js (CDN)
+- Server: XAMPP
+
+### Project Features:
+1. Add Income (amount, title/description, date)
+2. Add Expense (amount, category, date)
+3. Dashboard with summary:
+   - Total Income
+   - Total Expense
+   - Balance = Income - Expenses
+   - Today’s Expense
+4. Charts:
+   - Monthly Expense Bar Chart
+   - Income vs Expense Comparison Chart
+5. Manage Categories (CRUD)
+
+### Authentication:
+Create simple login system:
+- user table with password_hash()
+
+### Directory Structure (exactly create this):
+
+project-root/
+│── config/
+│   └── database.php        # Database connection
+│
+│── public/
+│   ├── index.php           # Dashboard
+│   ├── income.php          # Add & List incomes
+│   ├── expense.php         # Add & List expenses
+│   ├── categories.php      # Manage categories
+│   ├── login.php
+│   ├── logout.php
+│   ├── assets/
+│   │   ├── css/
+│   │   │   └── tailwind.css      # Generated Tailwind CSS build
+│   │   └── js/
+│   │       └── charts.js        # chart.js initialization
+│
+│── src/
+│   ├── functions.php       # Reusable functions helpers
+│   └── auth.php            # Authentication middleware
+│
+└── database/
+    └── schema.sql          # MySQL create tables script
+
+### Database Schema (use exactly this):
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255),
+    password VARCHAR(255)
+);
+
+CREATE TABLE categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255)
+);
+
+CREATE TABLE incomes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255),
+    amount DECIMAL(12,2),
+    date DATE
+);
+
+CREATE TABLE expenses (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    category_id INT,
+    amount DECIMAL(12,2),
+    date DATE,
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+);
+
+### Frontend Requirements:
+- Use Tailwind CSS for layout and styling
+- Create a clean modern dashboard layout:
+  - Top navbar with app name + logout
+  - Sidebar (Dashboard, Income, Expenses, Categories)
+  - Card components for summary values
+- Dashboard charts must use Chart.js via CDN.
+- Use responsive design.
+
+### Backend Logic:
+- Use prepared statements for all SQL
+- All DB logic should be placed in functions in src/functions.php
+- Pages use include_once() for header and footer layout components
+
+### Now:
+1. Generate all required files in the above structure.
+2. Start by generating `database.php`, `functions.php`, `auth.php`.
+3. Then generate UI layout (header, sidebar, container).
+4. Then implement Dashboard page with summary + charts.
+5. Then Income, Expense, Categories pages with CRUD.
+6. Ensure Tailwind classes are clean & consistent.
+
+Start coding now.
