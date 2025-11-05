@@ -20,7 +20,7 @@
             width: 64px;
             z-index: 50;
             background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow-x: hidden;
             box-shadow: 2px 0 12px rgba(0,0,0,0.1);
         }
@@ -52,10 +52,14 @@
         @media (max-width: 1024px) {
             .sidebar {
                 transform: translateX(-100%);
+                width: 240px;
             }
             .sidebar.open {
                 transform: translateX(0);
-                width: 240px;
+            }
+            .sidebar.open .sidebar-label {
+                opacity: 1;
+                visibility: visible;
             }
         }
     </style>
@@ -63,45 +67,44 @@
 <body class="bg-gray-50">
     <!-- Top Navbar -->
     <nav class="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-40 shadow-sm">
-        <div class="px-4 lg:px-6 py-3">
+        <div class="px-4 lg:px-6 py-2.5">
             <div class="flex items-center justify-between">
                 <!-- Left: Menu Toggle & Logo -->
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-3">
                     <button id="menuToggle" class="lg:hidden text-gray-600 hover:text-gray-900 focus:outline-none">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
                     </button>
-                    <div class="flex items-center space-x-3">
-                        <div class="bg-gradient-to-br from-blue-600 to-blue-500 rounded-lg p-2 shadow-md">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="flex items-center space-x-2">
+                        <div class="bg-gradient-to-br from-blue-600 to-blue-500 rounded-lg p-1.5 shadow-md">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                         </div>
                         <div>
-                            <h1 class="text-lg font-bold text-gray-800">XpensePro</h1>
-                            <p class="text-xs text-gray-500 hidden sm:block">Financial Dashboard</p>
+                            <h1 class="text-base font-bold text-gray-800">XpensePro</h1>
+                            <p class="text-xs text-gray-500 hidden sm:block leading-none">Financial Dashboard</p>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Right: User Info & Logout -->
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-3">
                     <!-- User Info -->
-                    <div class="hidden md:flex items-center space-x-3 bg-gray-50 rounded-full px-4 py-2 border border-gray-200">
-                        <div class="bg-blue-100 rounded-full p-1.5">
-                            <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="hidden md:flex items-center space-x-2 bg-gray-50 rounded-full px-3 py-1.5 border border-gray-200">
+                        <div class="bg-blue-100 rounded-full p-1">
+                            <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                             </svg>
                         </div>
-                        <div class="text-sm">
+                        <div class="text-xs">
                             <p class="font-semibold text-gray-700"><?php echo htmlspecialchars($_SESSION['username']); ?></p>
-                            <p class="text-xs text-gray-500">Account</p>
                         </div>
                     </div>
                     <!-- Logout Button -->
-                    <a href="logout.php" class="flex items-center space-x-2 bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg transition border border-red-200 text-sm font-medium">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <a href="logout.php" class="flex items-center space-x-1.5 bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg transition border border-red-200 text-xs font-medium">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                         </svg>
                         <span class="hidden sm:inline">Logout</span>
@@ -114,9 +117,9 @@
     <!-- Sidebar -->
     <aside id="sidebar" class="sidebar">
         <!-- Logo Area -->
-        <div class="flex items-center justify-center h-16 border-b border-gray-700">
+        <div class="flex items-center justify-center h-14 border-b border-gray-700">
             <div class="bg-blue-500 rounded-lg p-2">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             </div>
@@ -177,7 +180,22 @@
     </aside>
 
     <!-- Overlay for mobile -->
-    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden"></div>
+    <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden"></div>
 
     <!-- Main Content -->
-    <main class="pt-16 lg:ml-16 min-h-screen p-4 lg:p-8 transition-all">
+    <main class="pt-14 lg:ml-16 min-h-screen p-4 lg:p-8 transition-all">
+        <script>
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+
+    menuToggle?.addEventListener('click', () => {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('hidden');
+    });
+
+    overlay?.addEventListener('click', () => {
+        sidebar.classList.remove('open');
+        overlay.classList.add('hidden');
+    });
+</script>
