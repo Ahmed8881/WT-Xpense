@@ -2,7 +2,6 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../src/auth.php';
 
-// If already logged in, redirect to dashboard
 if (isLoggedIn()) {
     header('Location: index.php');
     exit();
@@ -16,52 +15,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     $confirmPassword = $_POST['confirm_password'] ?? '';
     
-    // Validation
-    if (empty($username)) {
-        $error = 'Username is required';
+    if (empty($username) || empty($password)) {
+        $error = 'Please fill in all fields';
     } elseif (strlen($username) < 3) {
         $error = 'Username must be at least 3 characters';
-    } elseif (empty($password)) {
-        $error = 'Password is required';
     } elseif (strlen($password) < 6) {
         $error = 'Password must be at least 6 characters';
     } elseif ($password !== $confirmPassword) {
         $error = 'Passwords do not match';
     } else {
-        // Check if username already exists
-        $conn = getDBConnection();
-        $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows > 0) {
-            $error = 'Username already exists';
-            $stmt->close();
-            $conn->close();
+        $result = registerUser($username, $password);
+        if (is_array($result) && $result['success']) {
+            $success = 'Account created successfully! Redirecting to dashboard...';
+            $_SESSION['user_id'] = $result['user_id'];
+            $_SESSION['username'] = $username;
+            header('refresh:2;url=index.php');
         } else {
-            $stmt->close();
-            
-            // Create new user
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-            $stmt->bind_param("ss", $username, $hashedPassword);
-            
-            if ($stmt->execute()) {
-                $success = 'Account created successfully! You can now login.';
-                // Auto login after signup
-                $_SESSION['user_id'] = $conn->insert_id;
-                $_SESSION['username'] = $username;
-                $stmt->close();
-                $conn->close();
-                
-                // Redirect to dashboard after 2 seconds
-                header("refresh:2;url=index.php");
-            } else {
-                $error = 'Failed to create account. Please try again.';
-                $stmt->close();
-                $conn->close();
-            }
+            $error = is_array($result) ? $result['message'] : 'Username already exists or registration failed';
         }
     }
 }
@@ -73,135 +43,136 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up - Smart Expense Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            background: #fff;
+        }
+        .curve-bg {
+            position: absolute;
+            width: 100vw;
+            height: 100vh;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+        @media (max-width: 768px) {
+            html, body {
+                overflow: auto;
+            }
+            .curve-bg {
+                display: none;
+            }
+        }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md">
-        <div class="text-center mb-8">
-            <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg class="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+<body class="min-h-screen flex items-center justify-center relative">
+    <!-- Decorative Curves -->
+    <svg class="curve-bg" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill="#2563eb" fill-opacity="0.08" d="M0,600 C400,900 1040,300 1440,700 L1440,0 L0,0 Z"/>
+        <path fill="#2563eb" fill-opacity="0.12" d="M0,800 C600,900 1240,400 1440,900 L1440,0 L0,0 Z"/>
+        <circle cx="1200" cy="200" r="120" fill="#60a5fa" fill-opacity="0.10"/>
+        <circle cx="200" cy="700" r="80" fill="#2563eb" fill-opacity="0.07"/>
+    </svg>
+    <div class="w-full max-w-lg mx-auto bg-white rounded-3xl shadow-2xl p-10 relative z-10">
+        <div class="flex flex-col items-center mb-8">
+            <div class="bg-gradient-to-br from-blue-600 to-blue-400 rounded-full w-16 h-16 flex items-center justify-center mb-4 shadow-lg">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="4" stroke-width="2" stroke="currentColor" fill="#93c5fd"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 20v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
                 </svg>
             </div>
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">Create Account</h1>
-            <p class="text-gray-600">Sign up to start managing your finances</p>
+            <h2 class="text-3xl font-bold text-blue-800 mb-2">Create Your Account</h2>
+            <p class="text-blue-500 text-center max-w-xs">Sign up to start tracking your expenses and income with ease!</p>
         </div>
-        
         <?php if ($error): ?>
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-                    </svg>
-                    <?php echo htmlspecialchars($error); ?>
-                </div>
+            <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 flex items-center text-sm">
+                <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                </svg>
+                <span><?php echo htmlspecialchars($error); ?></span>
             </div>
         <?php endif; ?>
-        
         <?php if ($success): ?>
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
-                    </svg>
-                    <?php echo htmlspecialchars($success); ?>
-                </div>
-                <p class="text-sm mt-2">Redirecting to dashboard...</p>
+            <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-xl mb-6 flex items-center text-sm">
+                <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                <span><?php echo htmlspecialchars($success); ?></span>
             </div>
         <?php endif; ?>
-        
-        <form method="POST" class="space-y-5">
+        <form method="POST" class="space-y-6">
             <div>
-                <label class="block text-gray-700 font-semibold mb-2" for="username">
-                    Username <span class="text-red-500">*</span>
-                </label>
                 <input 
                     type="text" 
                     id="username" 
                     name="username" 
                     required
-                    minlength="3"
-                    value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                    placeholder="Choose a username (min 3 characters)"
+                    class="w-full px-4 py-3 bg-blue-50 border-2 border-blue-100 rounded-full focus:outline-none text-gray-800 placeholder-gray-400"
+                    placeholder="Choose a username"
                 >
-                <p class="text-xs text-gray-500 mt-1">At least 3 characters</p>
             </div>
-            
             <div>
-                <label class="block text-gray-700 font-semibold mb-2" for="password">
-                    Password <span class="text-red-500">*</span>
-                </label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    required
-                    minlength="6"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                    placeholder="Choose a strong password"
-                >
-                <p class="text-xs text-gray-500 mt-1">At least 6 characters</p>
+                <div class="relative">
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        required
+                        class="w-full px-4 py-3 bg-blue-50 border-2 border-blue-100 rounded-full focus:outline-none text-gray-800 placeholder-gray-400 pr-12"
+                        placeholder="Create a password (min 6 characters)"
+                    >
+                    <button type="button" onclick="togglePassword('password')" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        <svg id="eyeIcon1" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
-            
             <div>
-                <label class="block text-gray-700 font-semibold mb-2" for="confirm_password">
-                    Confirm Password <span class="text-red-500">*</span>
-                </label>
-                <input 
-                    type="password" 
-                    id="confirm_password" 
-                    name="confirm_password" 
-                    required
-                    minlength="6"
-                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-                    placeholder="Re-enter your password"
-                >
+                <div class="relative">
+                    <input 
+                        type="password" 
+                        id="confirm_password" 
+                        name="confirm_password" 
+                        required
+                        class="w-full px-4 py-3 bg-blue-50 border-2 border-blue-100 rounded-full focus:outline-none text-gray-800 placeholder-gray-400 pr-12"
+                        placeholder="Re-enter your password"
+                    >
+                    <button type="button" onclick="togglePassword('confirm_password')" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        <svg id="eyeIcon2" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
-            
             <button 
                 type="submit" 
-                class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                class="w-full py-3 rounded-full text-white font-semibold text-base shadow-lg bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 transition"
             >
-                Create Account
+                CREATE ACCOUNT
             </button>
         </form>
-        
-        <div class="mt-6 text-center">
-            <p class="text-gray-600">
+        <div class="mt-8 text-center">
+            <p class="text-gray-600 text-sm">
                 Already have an account? 
-                <a href="login.php" class="text-blue-600 hover:text-blue-800 font-semibold">
-                    Login here
-                </a>
+                <a href="login.php" class="text-blue-600 hover:text-blue-700 font-semibold">Sign in here</a>
             </p>
         </div>
-        
-        <div class="mt-6 pt-6 border-t border-gray-200">
-            <div class="text-center text-xs text-gray-500">
-                <p>🔒 Your password will be securely encrypted</p>
-            </div>
-        </div>
     </div>
-    
     <script>
-        // Password strength indicator
-        const password = document.getElementById('password');
-        const confirmPassword = document.getElementById('confirm_password');
-        
-        confirmPassword.addEventListener('input', function() {
-            if (this.value !== password.value) {
-                this.setCustomValidity('Passwords do not match');
-            } else {
-                this.setCustomValidity('');
-            }
-        });
-        
-        password.addEventListener('input', function() {
-            if (confirmPassword.value && this.value !== confirmPassword.value) {
-                confirmPassword.setCustomValidity('Passwords do not match');
-            } else {
-                confirmPassword.setCustomValidity('');
-            }
-        });
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            field.type = field.type === 'password' ? 'text' : 'password';
+        }
     </script>
 </body>
 </html>
