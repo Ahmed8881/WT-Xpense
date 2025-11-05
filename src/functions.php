@@ -11,7 +11,25 @@ function addIncome($title, $amount, $date, $user_id) {
     $conn->close();
     return $result;
 }
-
+function getExpenseCategoryBreakdown($user_id) {
+    $conn = getDBConnection();
+    $query = "
+        SELECT c.name AS category, SUM(e.amount) AS total
+        FROM expenses e
+        JOIN categories c ON e.category_id = c.id
+        WHERE e.user_id = ?
+        GROUP BY c.id
+        ORDER BY total DESC
+    ";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $breakdown = $result->fetch_all(MYSQLI_ASSOC);
+    $stmt->close();
+    $conn->close();
+    return $breakdown;
+}
 function getAllIncomes($user_id) {
     $conn = getDBConnection();
     $stmt = $conn->prepare("SELECT * FROM incomes WHERE user_id = ? ORDER BY date DESC");

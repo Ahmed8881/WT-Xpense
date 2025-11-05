@@ -9,9 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/tailwind.css">
     <style>
-        body { 
-            font-family: 'Inter', sans-serif; 
-        }
+        body { font-family: 'Inter', sans-serif; }
         .sidebar {
             position: fixed;
             top: 0;
@@ -183,19 +181,21 @@
     <div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden"></div>
 
     <!-- Main Content -->
-    <main class="pt-14 lg:ml-16 min-h-screen p-4 lg:p-8 transition-all">
-        <script>
-    const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('overlay');
+    <main class="pt-14 lg:ml-16 min-h-screen p-4 mt-8 lg:p-8 transition-all">
 
-    menuToggle?.addEventListener('click', () => {
-        sidebar.classList.toggle('open');
-        overlay.classList.toggle('hidden');
-    });
+    <!-- Sidebar Toggle Script -->
+    <script>
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
 
-    overlay?.addEventListener('click', () => {
-        sidebar.classList.remove('open');
-        overlay.classList.add('hidden');
-    });
-</script>
+        menuToggle?.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('hidden');
+        });
+
+        overlay?.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.add('hidden');
+        });
+    </script>
